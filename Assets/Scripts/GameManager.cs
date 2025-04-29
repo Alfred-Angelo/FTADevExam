@@ -6,4 +6,9 @@ public class GameManager : MonoBehaviour
     {
         SingletonManager.Register(this);
     }
+
+    public void CheckPlayerHealth(float value)
+    {
+        
+    }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -8,11 +9,13 @@ public class PlayerShooting : MonoBehaviour
     [SerializeField] private GameObject bulletTrail;
     [SerializeField] private float weaponRange = 20f;
     [SerializeField] private Animator shootingFlashAnimator;
+    [SerializeField] private float cooldown = 0.3f;
     
     private PlayerInputActions playerControls;
     private InputAction shoot;
     private Ray ray;
     private RaycastHit2D[] hits = new RaycastHit2D[10];
+    private bool inCooldown;
 
     private void Awake()
     {
@@ -33,6 +36,10 @@ public class PlayerShooting : MonoBehaviour
 
     private void Shoot(InputAction.CallbackContext context)
     {
+        if (inCooldown) return;
+
+        StartCoroutine(CooldownTimer());
+        
         shootingFlashAnimator.SetTrigger("Shoot");
 
         Physics2D.RaycastNonAlloc(transform.position, Input.mousePosition - Camera.main.WorldToScreenPoint(transform.position), hits);
@@ -45,7 +52,7 @@ public class PlayerShooting : MonoBehaviour
         
         foreach (RaycastHit2D raycastHit2D in hits)
         {
-            if (raycastHit2D.collider)
+            if (raycastHit2D.collider && raycastHit2D.collider.gameObject != gameObject)
             {
                 trailScript.SetTargetPosition(raycastHit2D.point);
                 
@@ -58,5 +65,14 @@ public class PlayerShooting : MonoBehaviour
             
             trailScript.SetTargetPosition(endPosition);
         }
+    }
+
+    private IEnumerator CooldownTimer()
+    {
+        inCooldown = true;
+        
+        yield return new WaitForSeconds(cooldown);
+        
+        inCooldown = false;
     }
 }
